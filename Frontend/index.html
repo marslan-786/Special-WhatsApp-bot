@@ -1,1 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>𝙎𝙞𝙡𝙚𝙣𝙩 𝙃𝙖𝙘𝙠𝙚𝙧𝙨 - Ultimate Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #030303;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 150, 255, 0.08), transparent 25%);
+            color: white; 
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+        }
+        .glass-card { 
+            background: rgba(15, 15, 15, 0.6); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(0, 255, 255, 0.15); 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.05);
+            width: 90%; max-width: 440px; border-radius: 30px; padding: 40px 30px; position: relative;
+        }
+        .neon-text { text-shadow: 0 0 20px rgba(0, 255, 255, 0.6); }
+        .input-wrapper { position: relative; }
+        .input-field {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #222;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .input-field:focus {
+            border-color: #00e5ff; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .action-btn:hover { box-shadow: 0 0 30px rgba(79, 172, 254, 0.6); transform: translateY(-2px); }
+        .action-btn:active { transform: translateY(1px); }
+        
+        .code-box {
+            background: repeating-linear-gradient(45deg, rgba(0,0,0,0.5), rgba(0,0,0,0.5) 10px, rgba(10,10,10,0.5) 10px, rgba(10,10,10,0.5) 20px);
+            border: 1px dashed rgba(0, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
 
+    <div class="glass-card text-center">
+        <div class="absolute top-5 right-5 flex items-center space-x-2 bg-black/50 px-3 py-1 rounded-full border border-white/5">
+            <span class="text-[10px] text-gray-400 font-bold tracking-widest">SERVER</span>
+            <div id="ws-indicator" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_red] transition-colors duration-500"></div>
+        </div>
+
+        <div class="flex justify-center mb-6 mt-4">
+            <div class="p-1.5 rounded-full bg-gradient-to-tr from-cyan-500/40 to-blue-500/40 animate-pulse">
+                <img src="/pic.png" onerror="this.src='https://ui-avatars.com/api/?name=SH&background=0D8ABC&color=fff&rounded=true'" class="w-24 h-24 rounded-full object-cover shadow-2xl border-2 border-black">
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-bold tracking-[4px] text-white mb-1 neon-text">𝙎𝙞𝙡𝙚𝙣𝙩 𝙃𝙖𝙘𝙠𝙚𝙧𝙨</h1>
+        <p class="text-cyan-400 text-xs tracking-[3px] uppercase mb-8 font-semibold">Gateway Protocol v2.0</p>
+
+        <div class="space-y-6">
+            <div class="input-wrapper">
+                <input type="text" id="phone-num" placeholder="923001234567" 
+                    class="input-field w-full py-4 px-6 rounded-2xl text-center text-xl font-mono text-white placeholder-gray-600 outline-none">
+                <div class="absolute -bottom-5 left-0 right-0 text-center">
+                    <span class="text-[9px] text-gray-500 tracking-widest bg-[#0a0a0a] px-2">ENTER NUMBER WITHOUT +</span>
+                </div>
+            </div>
+
+            <button onclick="pairNow()" id="pair-btn" 
+                class="action-btn w-full py-4 mt-2 rounded-2xl font-bold text-black tracking-[2px] uppercase">
+                Initialize Pairing
+            </button>
+        </div>
+
+        <div id="code-section" class="hidden mt-8 pt-6 border-t border-cyan-500/20">
+            <p class="text-[10px] text-cyan-400 font-bold mb-3 uppercase tracking-widest">Your Pairing Code</p>
+            <div onclick="copyCode()" class="code-box cursor-pointer rounded-2xl p-5 relative group transition-all hover:border-cyan-400">
+                <h2 id="display-code" class="text-4xl font-mono font-black text-white tracking-[8px]">...</h2>
+                <div class="absolute inset-0 flex items-center justify-center bg-cyan-900/90 text-white font-bold tracking-widest text-sm opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl backdrop-blur-sm">
+                    CLICK TO COPY
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket Logic for Railway (Auto Reconnect & Keep-Alive)
+        function connectWebSocket() {
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const socket = new WebSocket(`${proto}//${window.location.host}/ws`);
+
+            socket.onopen = () => {
+                const ind = document.getElementById('ws-indicator');
+                ind.className = "w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_12px_#22c55e] transition-colors duration-500";
+            };
+
+            socket.onclose = () => {
+                const ind = document.getElementById('ws-indicator');
+                ind.className = "w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_#ef4444] transition-colors duration-500";
+                setTimeout(connectWebSocket, 3000); // ریلوے پر ڈراپ ہونے پر دوبارہ کنیکٹ کرے گا
+            };
+        }
+        connectWebSocket();
+
+        // Pairing API Call
+        async function pairNow() {
+            const numInput = document.getElementById('phone-num');
+            const btn = document.getElementById('pair-btn');
+            const num = numInput.value.replace(/[^0-9]/g, '');
+
+            if(num.length < 10) return alert("Bhai, number theek se likho!");
+            
+            btn.innerText = "Processing...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/pair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: num })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code) {
+                    document.getElementById('display-code').innerText = result.code;
+                    document.getElementById('code-section').classList.remove('hidden');
+                    btn.innerText = "Successfully Paired!";
+                    btn.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+                    btn.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.4)";
+                } else {
+                    throw new Error(result.error || "Unknown Error");
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.innerText = "Try Again";
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }
+        }
+
+        function copyCode() {
+            const code = document.getElementById('display-code').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Code copied to clipboard! Paste it in WhatsApp.");
+        }
+    </script>
+</body>
+</html>
